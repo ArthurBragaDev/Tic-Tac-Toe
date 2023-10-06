@@ -57,17 +57,17 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
                 when(gameStatus){
                     GameStatus.CREATED -> {
                         binding.startGameBtn.visibility = View.INVISIBLE
-                        "Game ID: " + gameId
+                        "Game ID: $gameId"
                     }
                     GameStatus.JOINED -> {
                         "Clique em começar"
                     }
                     GameStatus.INPROGRESS ->{
                         binding.startGameBtn.visibility = View.INVISIBLE
-                        "Vez do " + currentPlayer
+                        "Vez do $currentPlayer"
                     }
                     GameStatus.FINSHED ->{
-                        if (winner.isEmpty()) winner + "ganhou"
+                        if (winner.isNotEmpty()) "$winner ganhou"
                         else "Empate"
                     }
                 }
@@ -90,16 +90,48 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
         GameData.saveGameModel(model)
     }
 
+    fun checkForWinner(){
+        val winningPos = arrayOf(
+            intArrayOf(0,1,2),
+            intArrayOf(3,4,5),
+            intArrayOf(6,7,8),
+            intArrayOf(0,3,6),
+            intArrayOf(1,4,7),
+            intArrayOf(2,5,8),
+            intArrayOf(0,4,8),
+            intArrayOf(2,4,6),
+        )
+
+        gameModel?.apply {
+            for (i in winningPos){
+                if (
+                    filledPos[i[0]] == filledPos[i[1]] &&
+                    filledPos[i[1]] == filledPos[i[2]] &&
+                    filledPos[i[0]].isNotEmpty()
+                ){
+                    gameStatus = GameStatus.FINSHED
+                    winner = filledPos[i[0]]
+                }
+
+            }
+            if (filledPos.none(){it.isEmpty()}){
+                gameStatus = GameStatus.FINSHED
+            }
+            updateGameData(this)
+
+        }
+    }
     override fun onClick(p0: View?) {
         gameModel?.apply {
             if(gameStatus != GameStatus.INPROGRESS){
                 Toast.makeText(applicationContext, "O jogo não foi iniciado", Toast.LENGTH_SHORT).show()
-                return;
+                return
             }
             val clickedPos = (p0?.tag as String).toInt()
             if(filledPos[clickedPos].isEmpty()){
                 filledPos[clickedPos] = currentPlayer
                 currentPlayer = if(currentPlayer=="X") "O" else "X"
+                checkForWinner()
                 updateGameData(this)
             }
 
