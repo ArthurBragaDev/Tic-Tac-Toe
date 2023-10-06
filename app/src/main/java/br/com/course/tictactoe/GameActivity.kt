@@ -2,6 +2,7 @@ package br.com.course.tictactoe
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import br.com.course.tictactoe.databinding.ActivityGameBinding
 
@@ -50,15 +51,19 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
             binding.btn7.text = filledPos[7]
             binding.btn8.text = filledPos[8]
 
+            binding.startGameBtn.visibility = View.VISIBLE
+
             binding.gameStatusText.text =
                 when(gameStatus){
                     GameStatus.CREATED -> {
+                        binding.startGameBtn.visibility = View.INVISIBLE
                         "Game ID: " + gameId
                     }
                     GameStatus.JOINED -> {
                         "Clique em começar"
                     }
                     GameStatus.INPROGRESS ->{
+                        binding.startGameBtn.visibility = View.INVISIBLE
                         "Vez do " + currentPlayer
                     }
                     GameStatus.FINSHED ->{
@@ -71,10 +76,33 @@ class GameActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun startGame() {
-        TODO("Not yet implemented")
+        gameModel?.apply {
+            updateGameData(
+                GameModel(
+                    gameId = gameId,
+                    gameStatus = GameStatus.INPROGRESS
+                )
+            )
+        }
+    }
+
+    fun updateGameData(model : GameModel){
+        GameData.saveGameModel(model)
     }
 
     override fun onClick(p0: View?) {
-        TODO("Not yet implemented")
+        gameModel?.apply {
+            if(gameStatus != GameStatus.INPROGRESS){
+                Toast.makeText(applicationContext, "O jogo não foi iniciado", Toast.LENGTH_SHORT).show()
+                return;
+            }
+            val clickedPos = (p0?.tag as String).toInt()
+            if(filledPos[clickedPos].isEmpty()){
+                filledPos[clickedPos] = currentPlayer
+                currentPlayer = if(currentPlayer=="X") "O" else "X"
+                updateGameData(this)
+            }
+
+        }
     }
 }
